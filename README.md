@@ -52,7 +52,7 @@ public class Example {
 ```xml
 <dependency>
     <groupId>com.github.Alviannn</groupId>
-    <artifactId>SQLTool</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>SQLHelper</artifactId>
+    <version>2.0</version>
 </dependency>
 ```
