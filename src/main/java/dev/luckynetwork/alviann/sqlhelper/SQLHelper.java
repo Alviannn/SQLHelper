@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.*;
+import java.util.Map;
 import java.util.Properties;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -102,7 +103,8 @@ public class SQLHelper {
      * the SQL types
      */
     public enum Type {
-        MYSQL("jdbc:mysql://%s:%s%s?useSSL=false&seLegacyDatetimeCode=false&serverTimezone=UTC", "com.mysql.cj.jdbc.Driver"),
+        // MYSQL("jdbc:mysql://%s:%s%s?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC", "com.mysql.cj.jdbc.Driver"),
+        MYSQL("jdbc:mysql://%s:%s%s", "com.mysql.cj.jdbc.Driver"),
         SQLITE("jdbc:sqlite:%s", "org.sqlite.JDBC"),
         H2("jdbc:h2:./%s", "org.h2.Driver");
 
@@ -117,14 +119,14 @@ public class SQLHelper {
         /**
          * @return the jdbc url
          */
-        String getJdbcUrl() {
+        public String getJdbcUrl() {
             return jdbcUrl;
         }
 
         /**
          * @return the class path
          */
-        String getClassPath() {
+        public String getClassPath() {
             return classPath;
         }
     }
@@ -203,11 +205,16 @@ public class SQLHelper {
             throw new NullPointerException("Failed to format the JDBC URL!");
         }
 
+        try {
+            Class.forName(type.classPath);
+        } catch (Exception ignored) {
+        }
+
         if (hikari) {
             HikariConfig config = new HikariConfig();
 
-            config.setDriverClassName(type.getClassPath());
-            config.setJdbcUrl(String.format(url, host, port, database));
+            config.setDriverClassName(type.classPath);
+            config.setJdbcUrl(url);
             config.setMaximumPoolSize(20);
 
             config.setUsername(username);
@@ -221,11 +228,6 @@ public class SQLHelper {
             dataSource = new HikariDataSource(config);
         }
         else {
-            try {
-                Class.forName(type.classPath);
-            } catch (Exception ignored) {
-            }
-
             if (type == Type.MYSQL) {
                 Properties config = new Properties();
 
@@ -238,6 +240,59 @@ public class SQLHelper {
                 config.setProperty("useServerPrepStmts", "true");
 
                 connection = DriverManager.getConnection(url, config);
+            }
+            else {
+                connection = DriverManager.getConnection(url, username, password);
+            }
+        }
+    }
+
+    /**
+     * connects the SQL
+     *
+     * @param config the connection config
+     * @throws SQLException if the SQL failed to connect
+     */
+    public void connect(Properties config) throws SQLException {
+        String url = this.formatUrl(host, port, database);
+
+        if (url == null) {
+            throw new NullPointerException("Failed to format the JDBC URL!");
+        }
+
+        try {
+            Class.forName(type.classPath);
+        } catch (Exception ignored) {
+        }
+
+        if (hikari) {
+            HikariConfig sqlConfig = new HikariConfig();
+
+            sqlConfig.setDriverClassName(type.classPath);
+            sqlConfig.setJdbcUrl(url);
+            // sqlConfig.setMaximumPoolSize(20);
+
+            sqlConfig.setUsername(username);
+            sqlConfig.setPassword(password);
+
+            for (Map.Entry<Object, Object> entry : config.entrySet()) {
+                sqlConfig.addDataSourceProperty(entry.getKey().toString(), entry.getValue().toString());
+            }
+
+            dataSource = new HikariDataSource(sqlConfig);
+        }
+        else {
+            if (type == Type.MYSQL) {
+                Properties sqlConfig = new Properties();
+
+                sqlConfig.setProperty("user", username);
+                sqlConfig.setProperty("password", password);
+
+                for (Map.Entry<Object, Object> entry : config.entrySet()) {
+                    sqlConfig.setProperty(entry.getKey().toString(), entry.getValue().toString());
+                }
+
+                connection = DriverManager.getConnection(url, sqlConfig);
             }
             else {
                 connection = DriverManager.getConnection(url, username, password);
