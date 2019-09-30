@@ -1,7 +1,7 @@
 # SQLHelper
 [![](https://jitpack.io/v/Alviannn/SQLHelper.svg)](https://jitpack.io/#Alviannn/SQLHelper)
 
-A java SQL tool
+A java SQL tool (only MYSQL, SQLITE, and H2)
 
 Example code:
 ```java
@@ -15,6 +15,11 @@ public class Example {
                 .setHikari(true)
                 .toSQL();
 
+        Properties config = new Properties();
+
+        config.setProperty("serverTimezone", "UTC");
+        config.setPropety("useSSL", "false");
+
         sql.connect();
 
         int count = 0;
@@ -23,7 +28,7 @@ public class Example {
 
             while (set.next()) {
                 count++;
-                print("[" + count + "] " + set.getString("name"));
+                print("[" + count + "] " + set.getString("column"));
             }
         }
 

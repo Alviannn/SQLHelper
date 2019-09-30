@@ -2,6 +2,7 @@ package dev.luckynetwork.alviann.sqlhelper;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
 import java.util.Map;
@@ -145,6 +146,14 @@ public class SQLHelper {
             }
         }
         return connection;
+    }
+
+    /**
+     * @return the hikari data source! (could be 'null' if hikari isn't being used)
+     */
+    @Nullable
+    public HikariDataSource getDataSource() {
+        return dataSource;
     }
 
     /**
