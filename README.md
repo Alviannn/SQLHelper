@@ -20,7 +20,7 @@ public class Example {
         config.setProperty("serverTimezone", "UTC");
         config.setPropety("useSSL", "false");
 
-        sql.connect();
+        sql.connect(config);
 
         int count = 0;
         try (Results results = sql.getResults("SELECT * FROM table;")) {
