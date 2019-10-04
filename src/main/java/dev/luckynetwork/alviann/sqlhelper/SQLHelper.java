@@ -107,10 +107,11 @@ public class SQLHelper {
         // MYSQL("jdbc:mysql://%s:%s%s?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC", "com.mysql.cj.jdbc.Driver"),
         MYSQL("jdbc:mysql://%s:%s%s", "com.mysql.cj.jdbc.Driver"),
         SQLITE("jdbc:sqlite:%s", "org.sqlite.JDBC"),
-        H2("jdbc:h2:./%s", "org.h2.Driver");
+        H2("jdbc:h2:./%s", "org.h2.Driver"),
+        CUSTOM("", "");
 
-        private final String jdbcUrl;
-        private final String classPath;
+        private String jdbcUrl;
+        private String classPath;
 
         Type(String jdbcUrl, String classPath) {
             this.jdbcUrl = jdbcUrl;
@@ -129,6 +130,24 @@ public class SQLHelper {
          */
         public String getClassPath() {
             return classPath;
+        }
+
+        /**
+         * sets the jdbc url
+         *
+         * @param jdbcUrl the jdbc url
+         */
+        public void setJdbcUrl(String jdbcUrl) {
+            this.jdbcUrl = jdbcUrl;
+        }
+
+        /**
+         * sets the class path
+         *
+         * @param classPath the class path
+         */
+        public void setClassPath(String classPath) {
+            this.classPath = classPath;
         }
     }
 
