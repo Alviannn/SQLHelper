@@ -348,12 +348,8 @@ public class SQLHelper {
      * @throws SQLException if the SQL failed to disconnect
      */
     public void disconnect() throws SQLException {
-        if (hikari) {
-            dataSource.close();
-        }
-        else {
-            connection.close();
-        }
+        if (hikari) dataSource.close();
+        else connection.close();
 
         dataSource = null;
         connection = null;

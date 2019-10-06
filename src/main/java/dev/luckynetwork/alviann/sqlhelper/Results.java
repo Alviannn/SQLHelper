@@ -16,9 +16,9 @@ public class Results implements AutoCloseable {
      * constructs the SQL results
      *
      * @param connection the connection
-     * @param statement the (prepared) statement
-     * @param resultSet the result set
-     * @param hikari true if hikari is being used, otherwise false
+     * @param statement  the (prepared) statement
+     * @param resultSet  the result set
+     * @param hikari     true if hikari is being used, otherwise false
      */
     Results(Connection connection, PreparedStatement statement, ResultSet resultSet, boolean hikari) {
         this.connection = connection;
@@ -57,10 +57,12 @@ public class Results implements AutoCloseable {
             resultSet.close();
         } catch (Exception ignored) {
         }
+
         try {
             statement.close();
         } catch (Exception ignored) {
         }
+
         if (hikari) {
             try {
                 connection.close();
