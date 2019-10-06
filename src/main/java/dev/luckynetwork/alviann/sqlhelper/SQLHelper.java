@@ -168,6 +168,20 @@ public class SQLHelper {
     }
 
     /**
+     * checks SQL connection
+     *
+     * @return true if the SQL is still connected
+     */
+    public boolean isConnected() {
+        try {
+            if (hikari) return dataSource != null && !dataSource.isClosed();
+            return connection != null && !connection.isClosed();
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    /**
      * @return the hikari data source! (could be 'null' if hikari isn't being used)
      */
     @Nullable
