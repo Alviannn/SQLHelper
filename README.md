@@ -8,31 +8,34 @@ Example code:
 public class Example {
 
     public static void main(String[] args) throws SQLException {
-        SQLTool sql = SQLTool.newBuilder(SQLTool.Type.MYSQL)
+        SQLHelper sql = SQLHelper.newBuilder(SQLHelper.Type.MYSQL)
                 .setHost("localhost").setPort("3306")
-                .setDatabase("database")
-                .setUsername("root").setPassword("password")
+                .setDatabase("uhc_db?useSSL=false&serverTimezone=UTC")
+                .setUsername("root").setPassword("")
                 .setHikari(true)
                 .toSQL();
 
-        Properties config = new Properties();
+        sql.connect();
+        print("SQL connected!\n");
 
-        config.setProperty("serverTimezone", "UTC");
-        config.setPropety("useSSL", "false");
-
-        sql.connect(config);
+        sql.executeQuery("CREATE TABLE IF NOT EXISTS stats (name TINYTEXT NOT NULL, uuid TINYTEXT NOT NULL);");
 
         int count = 0;
-        try (Results results = sql.getResults("SELECT * FROM table;")) {
+        try (Results results = sql.getResults("SELECT * FROM stats;")) {
             ResultSet set = results.getResultSet();
 
             while (set.next()) {
                 count++;
-                print("[" + count + "] " + set.getString("column"));
+
+                String name = set.getString("name");
+                String uuid = set.getString("uuid");
+
+                print("[" + count + "] " + name + " - " + uuid + " (uuid-length: " + uuid.length() + ")");
             }
         }
 
         sql.disconnect();
+        print("\nSQL disconnected!");
     }
 
     private static void print(Object object) {
