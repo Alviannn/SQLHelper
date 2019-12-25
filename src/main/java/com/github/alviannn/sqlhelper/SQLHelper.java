@@ -1,10 +1,12 @@
-package dev.luckynetwork.alviann.sqlhelper;
+package com.github.alviannn.sqlhelper;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -190,28 +192,25 @@ public class SQLHelper {
     }
 
     /**
+     * insert a sql query string for later use
+     * <p>
+     * with this the '?' will work
+     *
+     * @param sql the sql query
+     * @return the query
+     */
+    public Query query(String sql) {
+        return new Query(sql, this);
+    }
+
+    /**
      * executes SQL query using PreparedStatement
      *
      * @param sql the SQL query
      * @throws SQLException if the query failed to be executed
      */
     public void executeQuery(String sql) throws SQLException {
-        Connection retrievedConnection = this.getConnection();
-
-        if (hikari) {
-            try (Connection connection = retrievedConnection; PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.execute();
-            } catch (SQLException e) {
-                throw new SQLException("Failed to execute query (Query: " + sql + ")");
-            }
-        }
-        else {
-            try (PreparedStatement statement = retrievedConnection.prepareStatement(sql)) {
-                statement.execute();
-            } catch (SQLException e) {
-                throw new SQLException("Failed to execute query (Query: " + sql + ")");
-            }
-        }
+        this.query(sql).execute();
     }
 
     /**
@@ -222,15 +221,7 @@ public class SQLHelper {
      * @throws SQLException if the query failed to be executed or failed to fetch the SQL results
      */
     public Results getResults(String sql) throws SQLException {
-        try {
-            Connection connection = this.getConnection();
-            PreparedStatement statement = connection.prepareStatement(sql);
-            ResultSet set = statement.executeQuery();
-
-            return new Results(connection, statement, set, hikari);
-        } catch (SQLException e) {
-            throw new SQLException("Failed to execute query (Query: " + sql + ")");
-        }
+        return this.query(sql).getResults();
     }
 
     // ---------------------------- Handler ---------------------------- //
@@ -262,6 +253,7 @@ public class SQLHelper {
             config.setUsername(username);
             config.setPassword(password);
 
+            // recommended config
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -276,6 +268,7 @@ public class SQLHelper {
                 config.setProperty("user", username);
                 config.setProperty("password", password);
 
+                // recommended config
                 config.setProperty("cachePrepStmts", "true");
                 config.setProperty("prepStmtCacheSize", "250");
                 config.setProperty("prepStmtCacheSqlLimit", "2048");

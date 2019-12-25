@@ -1,4 +1,4 @@
-package dev.luckynetwork.alviann.sqlhelper;
+package com.github.alviannn.sqlhelper;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

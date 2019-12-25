@@ -16,9 +16,12 @@ public class Example {
                 .toSQL();
 
         sql.connect();
-        print("SQL connected!\n");
+        println("SQL connected!\n");
 
-        sql.executeQuery("CREATE TABLE IF NOT EXISTS stats (name TINYTEXT NOT NULL, uuid TINYTEXT NOT NULL);");
+        sql.executeQuery("CREATE TABLE IF NOT EXISTS stats (name TINYTEXT NOT NULL, kills INT DEFAULT '0');");
+        sql.executeQuery("INSERT INTO stats (name, kills) VALUES ('Alviann', '10');");
+
+        insertRandomStuff(sql);
 
         int count = 0;
         try (Results results = sql.getResults("SELECT * FROM stats;")) {
@@ -28,17 +31,50 @@ public class Example {
                 count++;
 
                 String name = set.getString("name");
-                String uuid = set.getString("uuid");
+                int kills = set.getInt("kills");
 
-                print("[" + count + "] " + name + " - " + uuid + " (uuid-length: " + uuid.length() + ")");
+                println("[" + count + "] " + name + " - " + kills);
             }
         }
 
         sql.disconnect();
-        print("\nSQL disconnected!");
+        println("\nSQL disconnected!");
     }
 
-    private static void print(Object object) {
+    private static void insertRandomStuff(SQLHelper sql) throws SQLException {
+        for (int i = 0; i < 25; i++) {
+            String randomName = randomString(18);
+            int randomKills = new Random().nextInt(100);
+
+            sql.query("INSERT INTO stats (name, kills) VALUES (?, ?);")
+                    .execute(randomName, randomKills);
+        }
+    }
+
+    public static String randomString(int length) {
+        Random random = new Random();
+
+        char[] normal = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+        char[] capital = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+        char[] number = "0123456789".toCharArray();
+
+        StringBuilder builder = new StringBuilder();
+        while (builder.length() < length) {
+            if (random.nextBoolean()) {
+                builder.append(capital[random.nextInt(capital.length)]);
+            }
+            else if (random.nextBoolean()) {
+                builder.append(number[random.nextInt(number.length)]);
+            }
+            else {
+                builder.append(normal[random.nextInt(normal.length)]);
+            }
+        }
+
+        return builder.toString();
+    }
+
+    private static void println(Object object) {
         System.out.println(object);
     }
 
@@ -61,6 +97,6 @@ public class Example {
 <dependency>
     <groupId>com.github.Alviannn</groupId>
     <artifactId>SQLHelper</artifactId>
-    <version>2.3</version>
+    <version>2.4</version>
 </dependency>
 ```
