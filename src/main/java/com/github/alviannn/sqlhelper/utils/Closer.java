@@ -23,10 +23,9 @@ public final class Closer implements AutoCloseable {
      */
     public <T extends AutoCloseable> T add(T closeable) {
         if (closeable == null)
-            throw new NullPointerException("Closeable cannot be null!");
+            return null;
 
         closeableList.add(closeable);
-
         return closeable;
     }
 
