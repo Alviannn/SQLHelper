@@ -1,10 +1,13 @@
 package com.github.alviannn.sqlhelper;
 
+import lombok.Getter;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 @SuppressWarnings("unused")
+@Getter
 public class Results implements AutoCloseable {
 
     private final Connection connection;
@@ -25,27 +28,6 @@ public class Results implements AutoCloseable {
         this.statement = statement;
         this.resultSet = resultSet;
         this.hikari = hikari;
-    }
-
-    /**
-     * @return the SQL connection
-     */
-    public Connection getConnection() {
-        return connection;
-    }
-
-    /**
-     * @return the prepared statement
-     */
-    public PreparedStatement getStatement() {
-        return statement;
-    }
-
-    /**
-     * @return the result set
-     */
-    public ResultSet getResultSet() {
-        return resultSet;
     }
 
     /**

@@ -39,9 +39,8 @@ public final class Query {
                 Connection conn = closer.add(connection);
                 PreparedStatement statement = closer.add(conn.prepareStatement(sqlQuery));
 
-                for (int i = 0; i < params.length; i++) {
+                for (int i = 0; i < params.length; i++)
                     statement.setObject(i + 1, params[i]);
-                }
 
                 statement.execute();
             }
@@ -50,9 +49,8 @@ public final class Query {
             try (Closer closer = new Closer()) {
                 PreparedStatement statement = closer.add(connection.prepareStatement(sqlQuery));
 
-                for (int i = 0; i < params.length; i++) {
+                for (int i = 0; i < params.length; i++)
                     statement.setObject(i + 1, params[i]);
-                }
 
                 statement.execute();
             }
@@ -70,9 +68,8 @@ public final class Query {
         Connection connection = helper.getConnection();
         PreparedStatement statement = connection.prepareStatement(sqlQuery);
 
-        for (int i = 0; i < params.length; i++) {
+        for (int i = 0; i < params.length; i++)
             statement.setObject(i + 1, params[i]);
-        }
 
         ResultSet set = statement.executeQuery();
         return new Results(connection, statement, set, helper.isHikari());

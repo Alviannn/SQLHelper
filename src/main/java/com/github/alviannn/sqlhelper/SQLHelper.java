@@ -1,7 +1,10 @@
 package com.github.alviannn.sqlhelper;
 
+import com.github.alviannn.sqlhelper.utils.Closer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
@@ -13,11 +16,21 @@ import java.util.Properties;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SQLHelper {
 
-    private final String host, port, database, username, password;
-    private final Type type;
-    private final boolean hikari;
+    @Getter private final String host, port, database, username, password;
+    /**
+     * @return the SQLHelper type
+     */
+    @Getter private final Type type;
 
-    private HikariDataSource dataSource;
+    /**
+     * checks if the HikariCP is being used
+     */
+    @Getter private final boolean hikari;
+
+    /**
+     * @return the hikari data source! (could be 'null' if hikari isn't being used)
+     */
+    @Nullable @Getter private HikariDataSource dataSource;
     private Connection connection;
 
     // ---------------------------- Constructor ---------------------------- //
@@ -43,64 +56,9 @@ public class SQLHelper {
         this.hikari = hikari;
     }
 
-    // ---------------------------- Static Builder ---------------------------- //
-
     public static SQLBuilder newBuilder(Type type) {
         return new SQLBuilder("", "", "", "", "", false, type);
     }
-
-    // ---------------------------- Getter ---------------------------- //
-
-    /**
-     * @return the host
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * @return the port
-     */
-    public String getPort() {
-        return port;
-    }
-
-    /**
-     * @return the database
-     */
-    public String getDatabase() {
-        return database;
-    }
-
-    /**
-     * @return the username
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * @return the password
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * @return the SQL type
-     */
-    public Type getType() {
-        return type;
-    }
-
-    /**
-     * @return true if SQL is using hikari
-     */
-    public boolean isHikari() {
-        return hikari;
-    }
-
-    // ---------------------------- Enum ---------------------------- //
 
     /**
      * the SQL types
@@ -112,60 +70,26 @@ public class SQLHelper {
         H2("jdbc:h2:./%s", "org.h2.Driver"),
         CUSTOM("", "");
 
-        private String jdbcUrl;
-        private String classPath;
+        @Getter @Setter private String jdbcUrl;
+        @Getter @Setter private String classPath;
 
         Type(String jdbcUrl, String classPath) {
             this.jdbcUrl = jdbcUrl;
             this.classPath = classPath;
         }
-
-        /**
-         * @return the jdbc url
-         */
-        public String getJdbcUrl() {
-            return jdbcUrl;
-        }
-
-        /**
-         * @return the class path
-         */
-        public String getClassPath() {
-            return classPath;
-        }
-
-        /**
-         * sets the jdbc url
-         *
-         * @param jdbcUrl the jdbc url
-         */
-        public void setJdbcUrl(String jdbcUrl) {
-            this.jdbcUrl = jdbcUrl;
-        }
-
-        /**
-         * sets the class path
-         *
-         * @param classPath the class path
-         */
-        public void setClassPath(String classPath) {
-            this.classPath = classPath;
-        }
     }
-
-    // ---------------------------- Manager ---------------------------- //
 
     /**
      * @return the SQL connection
      */
-    public Connection getConnection() {
+    public Connection getConnection() throws SQLException {
         if (hikari) {
-            try {
-                return dataSource.getConnection();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            if (dataSource == null)
+                return null;
+
+            return dataSource.getConnection();
         }
+
         return connection;
     }
 
@@ -175,20 +99,20 @@ public class SQLHelper {
      * @return true if the SQL is still connected
      */
     public boolean isConnected() {
-        try {
-            if (hikari) return dataSource != null && !dataSource.isClosed();
-            return connection != null && !connection.isClosed();
+        boolean result = false;
+
+        try (Closer closer = new Closer()) {
+            if (hikari && dataSource != null && !dataSource.isClosed()) {
+                Connection conn = closer.add(dataSource.getConnection());
+                result = conn != null && !conn.isClosed() && conn.isValid(1);
+            }
+            else if (!hikari) {
+                result = connection != null && !connection.isClosed() && connection.isValid(1);
+            }
         } catch (Exception ignored) {
         }
-        return false;
-    }
 
-    /**
-     * @return the hikari data source! (could be 'null' if hikari isn't being used)
-     */
-    @Nullable
-    public HikariDataSource getDataSource() {
-        return dataSource;
+        return result;
     }
 
     /**
@@ -224,8 +148,6 @@ public class SQLHelper {
         return this.query(sql).getResults();
     }
 
-    // ---------------------------- Handler ---------------------------- //
-
     /**
      * connects the SQL
      *
@@ -233,10 +155,8 @@ public class SQLHelper {
      */
     public void connect() throws SQLException {
         String url = this.formatUrl(host, port, database);
-
-        if (url == null) {
+        if (url == null)
             throw new NullPointerException("Failed to format the JDBC URL!");
-        }
 
         try {
             Class.forName(type.classPath);
@@ -290,10 +210,8 @@ public class SQLHelper {
      */
     public void connect(Properties config) throws SQLException {
         String url = this.formatUrl(host, port, database);
-
-        if (url == null) {
+        if (url == null)
             throw new NullPointerException("Failed to format the JDBC URL!");
-        }
 
         try {
             Class.forName(type.classPath);
@@ -323,9 +241,8 @@ public class SQLHelper {
                 sqlConfig.setProperty("user", username);
                 sqlConfig.setProperty("password", password);
 
-                for (Map.Entry<Object, Object> entry : config.entrySet()) {
+                for (Map.Entry<Object, Object> entry : config.entrySet())
                     sqlConfig.setProperty(entry.getKey().toString(), entry.getValue().toString());
-                }
 
                 connection = DriverManager.getConnection(url, sqlConfig);
             }
@@ -341,8 +258,11 @@ public class SQLHelper {
      * @throws SQLException if the SQL failed to disconnect
      */
     public void disconnect() throws SQLException {
-        if (hikari) dataSource.close();
-        else connection.close();
+        if (hikari)
+            if (dataSource != null)
+                dataSource.close();
+        else
+            connection.close();
 
         dataSource = null;
         connection = null;
@@ -359,18 +279,16 @@ public class SQLHelper {
     private String formatUrl(String host, String port, String database) {
         switch (type) {
             case MYSQL: {
-                if (database != null && !database.isEmpty() && !database.startsWith("/")) {
+                if (database != null && !database.isEmpty() && !database.startsWith("/"))
                     database = "/" + database;
-                }
+
                 return String.format(type.jdbcUrl, host, port, database);
             }
             case SQLITE:
-            case H2: {
+            case H2:
                 return String.format(type.jdbcUrl, database);
-            }
-            default: {
+            default:
                 return null;
-            }
         }
     }
 

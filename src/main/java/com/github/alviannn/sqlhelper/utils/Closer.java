@@ -50,10 +50,8 @@ public final class Closer implements AutoCloseable {
             iterator.remove();
         }
 
-        if (!closeableList.isEmpty()) {
+        if (!closeableList.isEmpty())
             closeableList.clear();
-        }
-
     }
 
 }
