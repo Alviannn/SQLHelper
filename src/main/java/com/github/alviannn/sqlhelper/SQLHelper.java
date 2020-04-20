@@ -33,8 +33,6 @@ public class SQLHelper {
     @Nullable @Getter private HikariDataSource dataSource;
     private Connection connection;
 
-    // ---------------------------- Constructor ---------------------------- //
-
     /**
      * constructs the SQL instance
      *
