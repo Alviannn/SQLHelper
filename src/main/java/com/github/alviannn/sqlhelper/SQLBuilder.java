@@ -65,7 +65,7 @@ public class SQLBuilder {
     /**
      * sets the hikari
      *
-     * @param hikari true if hikari is going to be used, otherwise false
+     * @param hikari {@code true} if hikari is going to be used, otherwise {@code false}
      */
     public SQLBuilder setHikari(boolean hikari) {
         this.hikari = hikari;

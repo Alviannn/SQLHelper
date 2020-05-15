@@ -3,6 +3,7 @@ package com.github.alviannn.sqlhelper;
 import com.github.alviannn.sqlhelper.utils.Closer;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +19,7 @@ public class SQLHelper {
 
     @Getter private final String host, port, database, username, password;
     /**
-     * @return the SQLHelper type
+     * the SQLHelper type
      */
     @Getter private final Type type;
 
@@ -28,9 +29,10 @@ public class SQLHelper {
     @Getter private final boolean hikari;
 
     /**
-     * @return the hikari data source! (could be 'null' if hikari isn't being used)
+     * the hikari data source! (could be 'null' if hikari isn't being used)
      */
     @Nullable @Getter private HikariDataSource dataSource;
+
     private Connection connection;
 
     /**
@@ -59,25 +61,6 @@ public class SQLHelper {
     }
 
     /**
-     * the SQL types
-     */
-    public enum Type {
-        // MYSQL("jdbc:mysql://%s:%s%s?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC", "com.mysql.cj.jdbc.Driver"),
-        MYSQL("jdbc:mysql://%s:%s%s", "com.mysql.cj.jdbc.Driver"),
-        SQLITE("jdbc:sqlite:%s", "org.sqlite.JDBC"),
-        H2("jdbc:h2:./%s", "org.h2.Driver"),
-        CUSTOM("", "");
-
-        @Getter @Setter private String jdbcUrl;
-        @Getter @Setter private String classPath;
-
-        Type(String jdbcUrl, String classPath) {
-            this.jdbcUrl = jdbcUrl;
-            this.classPath = classPath;
-        }
-    }
-
-    /**
      * @return the SQL connection
      */
     public Connection getConnection() throws SQLException {
@@ -103,8 +86,7 @@ public class SQLHelper {
             if (hikari && dataSource != null && !dataSource.isClosed()) {
                 Connection conn = closer.add(dataSource.getConnection());
                 result = conn != null && !conn.isClosed() && conn.isValid(1);
-            }
-            else if (!hikari) {
+            } else if (!hikari) {
                 result = connection != null && !connection.isClosed() && connection.isValid(1);
             }
         } catch (Exception ignored) {
@@ -153,8 +135,6 @@ public class SQLHelper {
      */
     public void connect() throws SQLException {
         String url = this.formatUrl(host, port, database);
-        if (url == null)
-            throw new NullPointerException("Failed to format the JDBC URL!");
 
         try {
             Class.forName(type.classPath);
@@ -178,8 +158,7 @@ public class SQLHelper {
             config.addDataSourceProperty("useServerPrepStmts", "true");
 
             dataSource = new HikariDataSource(config);
-        }
-        else {
+        } else {
             if (type == Type.MYSQL) {
                 Properties config = new Properties();
 
@@ -193,8 +172,7 @@ public class SQLHelper {
                 config.setProperty("useServerPrepStmts", "true");
 
                 connection = DriverManager.getConnection(url, config);
-            }
-            else {
+            } else {
                 connection = DriverManager.getConnection(url, username, password);
             }
         }
@@ -208,8 +186,6 @@ public class SQLHelper {
      */
     public void connect(Properties config) throws SQLException {
         String url = this.formatUrl(host, port, database);
-        if (url == null)
-            throw new NullPointerException("Failed to format the JDBC URL!");
 
         try {
             Class.forName(type.classPath);
@@ -221,7 +197,6 @@ public class SQLHelper {
 
             sqlConfig.setDriverClassName(type.classPath);
             sqlConfig.setJdbcUrl(url);
-            // sqlConfig.setMaximumPoolSize(20);
 
             sqlConfig.setUsername(username);
             sqlConfig.setPassword(password);
@@ -231,8 +206,7 @@ public class SQLHelper {
             }
 
             dataSource = new HikariDataSource(sqlConfig);
-        }
-        else {
+        } else {
             if (type == Type.MYSQL) {
                 Properties sqlConfig = new Properties();
 
@@ -243,8 +217,7 @@ public class SQLHelper {
                     sqlConfig.setProperty(entry.getKey().toString(), entry.getValue().toString());
 
                 connection = DriverManager.getConnection(url, sqlConfig);
-            }
-            else {
+            } else {
                 connection = DriverManager.getConnection(url, username, password);
             }
         }
@@ -259,8 +232,8 @@ public class SQLHelper {
         if (hikari)
             if (dataSource != null)
                 dataSource.close();
-        else
-            connection.close();
+            else
+                connection.close();
 
         dataSource = null;
         connection = null;
@@ -275,19 +248,66 @@ public class SQLHelper {
      * @return the formatted JDBC URL
      */
     private String formatUrl(String host, String port, String database) {
-        switch (type) {
-            case MYSQL: {
-                if (database != null && !database.isEmpty() && !database.startsWith("/"))
+        if (database == null)
+            database = "";
+        if (host == null)
+            host = "";
+        if (port == null)
+            port = "";
+
+        switch (type.name) {
+            case "MYSQL": {
+                if (!database.isEmpty() && !database.startsWith("/"))
                     database = "/" + database;
 
-                return String.format(type.jdbcUrl, host, port, database);
+                return type.jdbcUrl.replace("{host}", host)
+                        .replace("{port}", port)
+                        .replace("{database}", database);
             }
-            case SQLITE:
-            case H2:
-                return String.format(type.jdbcUrl, database);
+            case "H2":
+                return type.jdbcUrl.replace("{database}", database);
             default:
-                return null;
+                return type.jdbcUrl.replace("{host}", host)
+                        .replace("{port}", port)
+                        .replace("{database}", database);
         }
+    }
+
+    /**
+     * the SQL type class
+     */
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class Type {
+
+        /**
+         * the default MYSQL type
+         */
+        public static final Type MYSQL = new Type("MYSQL", "jdbc:mysql://{host}:{port}{database}", "com.mysql.cj.jdbc.Driver");
+        /**
+         * the default H2 type
+         */
+        public static final Type H2 = new Type("H2", "jdbc:h2:./{database}", "org.h2.Driver");
+
+        /**
+         * the type name
+         */
+        private final String name;
+
+        /**
+         * the jdbc url
+         */
+        private String jdbcUrl;
+        /**
+         * the SQL class path
+         */
+        private String classPath;
+
+        public Type(String name) {
+            this.name = name;
+        }
+
     }
 
 }

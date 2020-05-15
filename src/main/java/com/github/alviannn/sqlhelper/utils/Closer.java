@@ -1,13 +1,16 @@
 package com.github.alviannn.sqlhelper.utils;
 
-import java.io.OutputStream;
+import lombok.Getter;
+
+import java.io.Flushable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public final class Closer implements AutoCloseable {
+@Getter
+public class Closer implements AutoCloseable {
 
-    public final List<AutoCloseable> closeableList;
+    private final List<AutoCloseable> closeableList;
 
     /**
      * constructs the closer instance
@@ -17,7 +20,7 @@ public final class Closer implements AutoCloseable {
     }
 
     /**
-     * adds a closeable instance
+     * adds a closable instance
      *
      * @param closeable the closeable instance
      */
@@ -30,7 +33,7 @@ public final class Closer implements AutoCloseable {
     }
 
     /**
-     * closes all closeables
+     * closes all closable instances
      */
     @Override
     public void close() {
@@ -39,19 +42,23 @@ public final class Closer implements AutoCloseable {
         while (iterator.hasNext()) {
             AutoCloseable next = iterator.next();
 
-            try {
-                if (next instanceof OutputStream)
-                    ((OutputStream) next).flush();
+            if (next != null) {
+                if (next instanceof Flushable)
+                    try {
+                        ((Flushable) next).flush();
+                    } catch (Exception ignored) {
+                    }
 
-                next.close();
-            } catch (Exception ignored) {
+                try {
+                    next.close();
+                } catch (Exception ignored) {
+                }
             }
 
             iterator.remove();
         }
 
-        if (!closeableList.isEmpty())
-            closeableList.clear();
+        closeableList.clear();
     }
 
 }
