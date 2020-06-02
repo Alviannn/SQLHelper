@@ -14,8 +14,6 @@ public class SQLBuilder {
 
     /**
      * sets the host
-     *
-     * @param host the host
      */
     public SQLBuilder setHost(String host) {
         this.host = host;
@@ -24,8 +22,6 @@ public class SQLBuilder {
 
     /**
      * sets the port
-     *
-     * @param port the port
      */
     public SQLBuilder setPort(String port) {
         this.port = port;
@@ -34,8 +30,6 @@ public class SQLBuilder {
 
     /**
      * sets the database
-     *
-     * @param database the database
      */
     public SQLBuilder setDatabase(String database) {
         this.database = database;
@@ -44,8 +38,6 @@ public class SQLBuilder {
 
     /**
      * sets the username
-     *
-     * @param username the username
      */
     public SQLBuilder setUsername(String username) {
         this.username = username;
@@ -54,8 +46,6 @@ public class SQLBuilder {
 
     /**
      * sets the password
-     *
-     * @param password the password
      */
     public SQLBuilder setPassword(String password) {
         this.password = password;
@@ -74,8 +64,6 @@ public class SQLBuilder {
 
     /**
      * sets the SQL type
-     *
-     * @param type the SQL type
      */
     public SQLBuilder setType(SQLHelper.Type type) {
         this.type = type;
@@ -84,8 +72,6 @@ public class SQLBuilder {
 
     /**
      * builds the SQL instance
-     *
-     * @return the SQL instance
      */
     public SQLHelper toSQL() {
         return new SQLHelper(host, port, database, username, password, type, hikari);

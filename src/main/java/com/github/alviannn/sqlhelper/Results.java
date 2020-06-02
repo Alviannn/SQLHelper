@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-@SuppressWarnings("unused")
 @Getter
 public class Results implements AutoCloseable {
 
@@ -23,7 +22,7 @@ public class Results implements AutoCloseable {
      * @param resultSet  the result set
      * @param hikari     true if hikari is being used, otherwise false
      */
-    Results(Connection connection, PreparedStatement statement, ResultSet resultSet, boolean hikari) {
+    public Results(Connection connection, PreparedStatement statement, ResultSet resultSet, boolean hikari) {
         this.connection = connection;
         this.statement = statement;
         this.resultSet = resultSet;

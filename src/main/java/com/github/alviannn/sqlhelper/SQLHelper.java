@@ -46,7 +46,7 @@ public class SQLHelper {
      * @param type     the SQL type
      * @param hikari   true if hikari is being used, otherwise false
      */
-    SQLHelper(String host, String port, String database, String username, String password, Type type, boolean hikari) {
+    public SQLHelper(String host, String port, String database, String username, String password, Type type, boolean hikari) {
         this.host = host;
         this.port = port;
         this.database = database;
@@ -64,12 +64,8 @@ public class SQLHelper {
      * @return the SQL connection
      */
     public Connection getConnection() throws SQLException {
-        if (hikari) {
-            if (dataSource == null)
-                return null;
-
-            return dataSource.getConnection();
-        }
+        if (hikari)
+            return dataSource != null ? dataSource.getConnection() : null;
 
         return connection;
     }
@@ -125,7 +121,18 @@ public class SQLHelper {
      * @throws SQLException if the query failed to be executed or failed to fetch the SQL results
      */
     public Results getResults(String sql) throws SQLException {
-        return this.query(sql).getResults();
+        return this.query(sql).results();
+    }
+
+    /**
+     * fetches the SQL results, this can be used to fetch ResultSet too
+     *
+     * @param sql the SQL query
+     * @return the SQL results
+     * @throws SQLException if the query failed to be executed or failed to fetch the SQL results
+     */
+    public Results results(String sql) throws SQLException {
+        return this.query(sql).results();
     }
 
     /**
@@ -229,11 +236,10 @@ public class SQLHelper {
      * @throws SQLException if the SQL failed to disconnect
      */
     public void disconnect() throws SQLException {
-        if (hikari)
-            if (dataSource != null)
-                dataSource.close();
-            else
-                connection.close();
+        if (hikari && dataSource != null)
+            dataSource.close();
+        else if (connection != null)
+            connection.close();
 
         dataSource = null;
         connection = null;

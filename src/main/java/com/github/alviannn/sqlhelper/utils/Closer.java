@@ -43,11 +43,12 @@ public class Closer implements AutoCloseable {
             AutoCloseable next = iterator.next();
 
             if (next != null) {
-                if (next instanceof Flushable)
+                if (next instanceof Flushable) {
                     try {
                         ((Flushable) next).flush();
                     } catch (Exception ignored) {
                     }
+                }
 
                 try {
                     next.close();
