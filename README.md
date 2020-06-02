@@ -1,30 +1,30 @@
 # SQLHelper
 [![](https://jitpack.io/v/Alviannn/SQLHelper.svg)](https://jitpack.io/#Alviannn/SQLHelper)
 
-A java SQL tool (only MYSQL, SQLITE, and H2)
+A java SQL tool
 
 Example code:
 ```java
 public class Example {
 
     public static void main(String[] args) throws SQLException {
-        SQLHelper sql = SQLHelper.newBuilder(SQLHelper.Type.MYSQL)
+        SQLHelper helper = SQLHelper.newBuilder(SQLHelper.Type.MYSQL)
                 .setHost("localhost").setPort("3306")
                 .setDatabase("uhc_db?useSSL=false&serverTimezone=UTC")
                 .setUsername("root").setPassword("")
                 .setHikari(true)
                 .toSQL();
 
-        sql.connect();
+        helper.connect();
         println("SQL connected!\n");
 
-        sql.executeQuery("CREATE TABLE IF NOT EXISTS stats (name TINYTEXT NOT NULL, kills INT DEFAULT '0');");
-        sql.executeQuery("INSERT INTO stats (name, kills) VALUES ('Alviann', '10');");
+        helper.executeQuery("CREATE TABLE IF NOT EXISTS stats (name TINYTEXT NOT NULL, kills INT DEFAULT '0');");
+        helper.executeQuery("INSERT INTO stats (name, kills) VALUES ('Alviann', '10');");
 
-        insertRandomStuff(sql);
+        insertRandomStuff(helper);
 
         int count = 0;
-        try (Results results = sql.getResults("SELECT * FROM stats;")) {
+        try (Results results = helper.results("SELECT * FROM stats;")) {
             ResultSet set = results.getResultSet();
 
             while (set.next()) {
@@ -37,7 +37,7 @@ public class Example {
             }
         }
 
-        sql.disconnect();
+        helper.disconnect();
         println("\nSQL disconnected!");
     }
 
@@ -60,15 +60,12 @@ public class Example {
 
         StringBuilder builder = new StringBuilder();
         while (builder.length() < length) {
-            if (random.nextBoolean()) {
+            if (random.nextBoolean())
                 builder.append(capital[random.nextInt(capital.length)]);
-            }
-            else if (random.nextBoolean()) {
+            else if (random.nextBoolean())
                 builder.append(number[random.nextInt(number.length)]);
-            }
-            else {
+            else
                 builder.append(normal[random.nextInt(normal.length)]);
-            }
         }
 
         return builder.toString();
@@ -97,6 +94,6 @@ public class Example {
 <dependency>
     <groupId>com.github.Alviannn</groupId>
     <artifactId>SQLHelper</artifactId>
-    <version>2.4</version>
+    <version>2.5.5</version>
 </dependency>
 ```
