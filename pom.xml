@@ -14,6 +14,16 @@
         <sourceDirectory>src/main/java</sourceDirectory>
         <finalName>${project.artifactId}-${project.version}</finalName>
 
+        <resources>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>LICENSE</include>
+                </includes>
+                <targetPath>META-INF</targetPath>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
